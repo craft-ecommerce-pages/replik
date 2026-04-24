@@ -1,0 +1,11 @@
+{
+  "store_name": "RepliK",
+  "site_title": "RepliK — Fragancias",
+  "whatsapp_number": "593989523236",
+  "whatsapp_message": "Hola! Quiero hacer un pedido en RepliK:",
+  "currency": "$",
+  "categories": {
+    "hombre": "Para Él",
+    "mujer": "Para Ella"
+  }
+}

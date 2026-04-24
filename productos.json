@@ -1,0 +1,74 @@
+[
+  {
+    "id": "calvin-klein",
+    "nombre": "Calvin Klein",
+    "precio": 25,
+    "categoria": "hombre",
+    "imagen": "img/calvin_klein.webp",
+    "descripcion": "Fragancia inspirada en CK One — Calvin Klein. Cítrica, fresca y unisex por excelencia."
+  },
+  {
+    "id": "carolina-herrera-212-vip",
+    "nombre": "Carolina Herrera 212 VIP",
+    "precio": 25,
+    "categoria": "hombre",
+    "imagen": "img/carolina_herrera_212_vip.webp",
+    "descripcion": "Inspirada en 212 VIP Men Black. Amaderada, especiada y sofisticada."
+  },
+  {
+    "id": "acqua-de-gio",
+    "nombre": "Acqua de Gio Acqua",
+    "precio": 25,
+    "categoria": "hombre",
+    "imagen": "img/Acqua_de_gio_acqua.webp",
+    "descripcion": "Inspirada en Acqua di Giò Acqua — Giorgio Armani. Marina, cítrica y elegante."
+  },
+  {
+    "id": "eros-versace",
+    "nombre": "Eros Versace",
+    "precio": 25,
+    "categoria": "hombre",
+    "imagen": "img/eros_versace.webp",
+    "descripcion": "Inspirada en Eros — Versace. Fresca, oriental y apasionada."
+  },
+  {
+    "id": "jean-paul-gaultier",
+    "nombre": "Jean Paul Gaultier",
+    "precio": 25,
+    "categoria": "hombre",
+    "imagen": "img/jean_paul_gaultier.webp",
+    "descripcion": "Inspirada en Le Mâle — Jean Paul Gaultier. Lavanda, vainilla y un toque marino."
+  },
+  {
+    "id": "scandal-jean-paul-gaultier",
+    "nombre": "Scandal Jean Paul Gaultier",
+    "precio": 25,
+    "categoria": "mujer",
+    "imagen": "img/scandal_jean_paul_gaultier.webp",
+    "descripcion": "Inspirada en Scandal — Jean Paul Gaultier. Floral, sensual e irresistible."
+  },
+  {
+    "id": "la-vida-es-bella",
+    "nombre": "La Vida es Bella Lancôme",
+    "precio": 25,
+    "categoria": "mujer",
+    "imagen": "img/La_vida_es_bella_lancome.webp",
+    "descripcion": "Inspirada en La Vie est Belle — Lancôme. Iris, pralinés y un dulce de vainilla."
+  },
+  {
+    "id": "ariana-grande-thank-u-next",
+    "nombre": "Ariana Grande Thank U Next",
+    "precio": 25,
+    "categoria": "mujer",
+    "imagen": "img/ariana_grande_thank_u_next.webp",
+    "descripcion": "Inspirada en Thank U, Next — Ariana Grande. Frutal, coco y almizcle suave."
+  },
+  {
+    "id": "victoria-secret-bombshell",
+    "nombre": "Victoria Secret Bombshell",
+    "precio": 25,
+    "categoria": "mujer",
+    "imagen": "img/victoria_secret_bonshell.webp",
+    "descripcion": "Inspirada en Bombshell — Victoria's Secret. Floral, frutal y femenina."
+  }
+]
