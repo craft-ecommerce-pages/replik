@@ -72,34 +72,30 @@ body{
 .hero{
   text-align:center;
   padding:72px 24px 80px;
-  background:linear-gradient(180deg,var(--cream) 0%,var(--cream-dark) 100%);
+  background:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),url('../img/background_hero.webp') center/cover no-repeat;
   border-bottom:1px solid var(--cream-dark);
-}
-.hero-logo{
-  height:72px;width:auto;object-fit:contain;
-  margin-bottom:20px;
-  display:block;margin-left:auto;margin-right:auto;
 }
 .hero-brand{
   font-family:'Cormorant Garamond',serif;
   font-size:clamp(40px,8vw,64px);
   font-weight:300;letter-spacing:-.02em;
   line-height:1;margin-bottom:4px;
+  color:var(--white);
 }
 .hero-brand strong{font-weight:700}
 .hero-tagline{
   font-family:'Cormorant Garamond',serif;
   font-size:clamp(18px,3vw,24px);
   font-style:italic;font-weight:300;
-  color:var(--ink-mid);margin-bottom:24px;
+  color:rgba(255,255,255,.8);margin-bottom:24px;
   letter-spacing:.01em;
 }
 .hero-badge{
   display:inline-block;
-  border:1px solid var(--cream-dark);
+  border:1px solid rgba(255,255,255,.4);
   padding:10px 28px;
   font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--ink-mid);font-weight:400;
+  color:rgba(255,255,255,.75);font-weight:400;
 }
 
 /* ── TOOLBAR ── */
@@ -473,7 +469,6 @@ footer{
 @media(max-width:768px){
   .nav{padding:0 20px}
   .hero{padding:48px 20px 56px}
-  .hero-logo{height:52px}
   .toolbar{padding:12px 20px}
   .cat-header{margin:32px auto 16px;padding:0 20px}
   .grid{grid-template-columns:repeat(2,1fr);gap:2px;padding:0 20px}
