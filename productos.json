@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "id": 12276,
+    "slug": "212-carolina-herrera",
+    "nombre": "212 Carolina Herrera",
+    "precio": "24.97",
+    "precio_promo": "",
+    "categoria": "hombre",
+    "descripcion": "Perfume replica triple A del famoso 212 de Carolina Herrera",
+    "stock": -1,
+    "imagenes": [],
+    "variantes": [
+      {
+        "name": "Presentación",
+        "options": [
+          "30ml",
+          "100ml"
+        ]
+      },
+      {
+        "name": "Envase",
+        "options": [
+          "Original",
+          "Generico"
+        ]
+      }
+    ],
+    "sku": ""
+  }
+]
