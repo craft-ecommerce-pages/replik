@@ -8,7 +8,9 @@
     "categoria": "hombre",
     "descripcion": "Perfume replica triple A del famoso 212 de Carolina Herrera",
     "stock": -1,
-    "imagenes": [],
+    "imagenes": [
+      "producto/212-carolina-herrera/images/212-carolina-herrera-1.webp"
+    ],
     "variantes": [
       {
         "name": "Presentación",
