@@ -38,7 +38,9 @@
     "categoria": "mujer",
     "descripcion": "Perfume altamente cotizado",
     "stock": -1,
-    "imagenes": [],
+    "imagenes": [
+      "producto/la-vie-est-belle-lancome/images/la-vie-est-belle-lancome-1.webp"
+    ],
     "variantes": [
       {
         "name": "Presentación",
