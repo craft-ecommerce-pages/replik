@@ -2,11 +2,18 @@
   'use strict';
 
   /* ── STATE ── */
-  const cart = {};
+  let cartItems = []; // [{key, id, nombre, precio, qty, variantes, imagen}]
   let products = [];
   let config = {};
   let activeFilter = 'all';
   let searchQuery = '';
+
+  // Modal state
+  let modalProduct = null;
+  let modalQty = 1;
+  let modalVariants = {};
+  let sliderIdx = 0;
+  let sliderImages = [];
 
   /* ── DOM REFS ── */
   const $catalog       = document.getElementById('catalog');
@@ -24,10 +31,33 @@
   const $btnCheckout   = document.getElementById('btnCheckout');
   const $toast         = document.getElementById('toast');
   const $nav           = document.getElementById('mainNav');
+  const $modalOverlay  = document.getElementById('modalOverlay');
+  const $modalClose    = document.getElementById('modalClose');
+  const $sliderTrack   = document.getElementById('sliderTrack');
+  const $sliderPrev    = document.getElementById('sliderPrev');
+  const $sliderNext    = document.getElementById('sliderNext');
+  const $sliderDots    = document.getElementById('sliderDots');
+  const $modalDetail   = document.getElementById('modalDetail');
 
   /* ── HELPERS ── */
   function normalize(s){
     return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  }
+
+  function getImages(p){
+    if(Array.isArray(p.imagenes) && p.imagenes.length) return p.imagenes;
+    if(p.imagen) return [p.imagen];
+    return [];
+  }
+
+  function cartKey(id, variantes){
+    if(!variantes || !Object.keys(variantes).length) return String(id);
+    return id + ':' + Object.entries(variantes).sort().map(([k,v])=>k+'='+v).join(',');
+  }
+
+  function variantLabel(variantes){
+    if(!variantes || !Object.keys(variantes).length) return '';
+    return Object.values(variantes).join(' · ');
   }
 
   let toastTimer;
@@ -49,50 +79,53 @@
   }, { passive: true });
 
   /* ── CART LOGIC ── */
-  function cartAdd(id){
-    cart[id] = (cart[id] || 0) + 1;
-    saveCart();
-    updateCartUI();
-    updateCardButtons();
-    const p = products.find(x => x.id === id);
-    showToast(`${p ? p.nombre : 'Producto'} agregado`);
+  function cartFind(key){ return cartItems.find(i => i.key === key); }
+
+  function cartAdd(id, variantes, qty){
+    const p = products.find(x => String(x.id) === String(id));
+    if(!p) return;
+    const key = cartKey(id, variantes);
+    const existing = cartFind(key);
+    if(existing){ existing.qty += qty; }
+    else{
+      cartItems.push({
+        key, id, nombre: p.nombre,
+        precio: p.precio,
+        qty,
+        variantes: variantes || {},
+        imagen: getImages(p)[0] || ''
+      });
+    }
+    saveCart(); updateCartUI(); updateCardButtons();
+    showToast(`${p.nombre} agregado`);
   }
 
-  function cartRemove(id){
-    if(cart[id]) cart[id]--;
-    if(cart[id] <= 0) delete cart[id];
-    saveCart();
-    updateCartUI();
-    updateCardButtons();
+  function cartRemoveOne(key){
+    const item = cartFind(key);
+    if(!item) return;
+    item.qty--;
+    if(item.qty <= 0) cartItems = cartItems.filter(i => i.key !== key);
+    saveCart(); updateCartUI(); updateCardButtons();
   }
 
-  function cartSet(id, qty){
-    if(qty <= 0) delete cart[id];
-    else cart[id] = qty;
-    saveCart();
-    updateCartUI();
-    updateCardButtons();
+  function cartDelete(key){
+    cartItems = cartItems.filter(i => i.key !== key);
+    saveCart(); updateCartUI(); updateCardButtons();
   }
 
   function saveCart(){
-    try{ localStorage.setItem('replik_cart', JSON.stringify(cart)); }catch(e){}
+    try{ localStorage.setItem('replik_cart2', JSON.stringify(cartItems)); }catch(e){}
   }
 
   function loadCart(){
     try{
-      const saved = JSON.parse(localStorage.getItem('replik_cart') || '{}');
-      Object.assign(cart, saved);
+      const s = JSON.parse(localStorage.getItem('replik_cart2') || '[]');
+      if(Array.isArray(s)) cartItems = s;
     }catch(e){}
   }
 
-  function getCartTotals(){
-    let items = 0, total = 0;
-    for(const [id, qty] of Object.entries(cart)){
-      const p = products.find(x => x.id === id);
-      if(p){ items += qty; total += qty * p.precio; }
-    }
-    return { items, total };
-  }
+  function cartTotalQty(){ return cartItems.reduce((s,i) => s+i.qty, 0); }
+  function cartTotalPrice(){ return cartItems.reduce((s,i) => s+(i.precio*i.qty), 0); }
 
   /* ── RENDER CATALOG ── */
   function renderCatalog(){
@@ -104,11 +137,9 @@
       return matchCat && matchSearch;
     });
 
-    // Update count
     const $count = document.getElementById('filterCount');
     if($count) $count.textContent = `${filtered.length} fragancia${filtered.length !== 1 ? 's' : ''}`;
 
-    // Group by category
     const groups = {};
     filtered.forEach(p => {
       if(!groups[p.categoria]) groups[p.categoria] = [];
@@ -131,19 +162,21 @@
       grid.className = 'grid';
 
       groups[cat].forEach((p, i) => {
+        const imgs = getImages(p);
+        const hasVariants = Array.isArray(p.variantes) && p.variantes.length > 0;
+        const inCartQty = cartItems.filter(ci => String(ci.id) === String(p.id)).reduce((s,ci) => s+ci.qty, 0);
+
         const card = document.createElement('div');
         card.className = 'card';
         card.style.animationDelay = `${i * 0.06}s`;
         card.dataset.id = p.id;
 
-        const inCart = cart[p.id] || 0;
-
         card.innerHTML = `
-          <div class="card-img">
-            <img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.style.opacity=0"/>
+          <div class="card-img" data-open="${p.id}">
+            <img src="${imgs[0] || ''}" alt="${p.nombre}" loading="lazy" onerror="this.style.opacity=0"/>
             <div class="card-img-overlay">
-              <button class="btn-add-hover" data-action="add" data-id="${p.id}">
-                Agregar al carrito
+              <button class="btn-add-hover" data-open="${p.id}">
+                ${hasVariants ? 'Elegir opciones' : 'Ver producto'}
               </button>
             </div>
           </div>
@@ -154,16 +187,16 @@
             <div class="card-footer">
               <div class="card-price">${formatPrice(p.precio)}</div>
               <div class="card-actions">
-                ${inCart > 0 ? `
+                ${(!hasVariants && inCartQty > 0) ? `
                   <div class="qty-control">
-                    <button data-action="dec" data-id="${p.id}">−</button>
-                    <span class="qty-val">${inCart}</span>
+                    <button data-action="dec" data-id="${p.id}" data-key="${cartKey(p.id,{})}">−</button>
+                    <span class="qty-val">${inCartQty}</span>
                     <button data-action="inc" data-id="${p.id}">+</button>
                   </div>
                 ` : `
-                  <button class="btn-add" data-id="${p.id}" data-action="add">
+                  <button class="btn-add${inCartQty > 0 ? ' in-cart' : ''}" ${hasVariants ? `data-open="${p.id}"` : `data-add="${p.id}"`}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-                    Agregar
+                    ${hasVariants ? 'Elegir' : 'Agregar'}
                   </button>
                 `}
               </div>
@@ -185,48 +218,166 @@
   function updateCardButtons(){
     document.querySelectorAll('.card').forEach(card => {
       const id = card.dataset.id;
-      const inCart = cart[id] || 0;
+      const p = products.find(x => String(x.id) === String(id));
+      if(!p) return;
+      const hasVariants = Array.isArray(p.variantes) && p.variantes.length > 0;
+      const inCartQty = cartItems.filter(ci => String(ci.id) === String(id)).reduce((s,ci) => s+ci.qty, 0);
       const actionsEl = card.querySelector('.card-actions');
       if(!actionsEl) return;
 
-      if(inCart > 0){
+      if(!hasVariants && inCartQty > 0){
         actionsEl.innerHTML = `
           <div class="qty-control">
-            <button data-action="dec" data-id="${id}">−</button>
-            <span class="qty-val">${inCart}</span>
+            <button data-action="dec" data-id="${id}" data-key="${cartKey(id,{})}">−</button>
+            <span class="qty-val">${inCartQty}</span>
             <button data-action="inc" data-id="${id}">+</button>
           </div>
         `;
       } else {
         actionsEl.innerHTML = `
-          <button class="btn-add" data-id="${id}" data-action="add">
+          <button class="btn-add${inCartQty > 0 ? ' in-cart' : ''}" ${hasVariants ? `data-open="${id}"` : `data-add="${id}"`}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            Agregar
+            ${hasVariants ? 'Elegir' : 'Agregar'}
           </button>
         `;
       }
     });
   }
 
-  /* ── CART DRAWER ── */
-  function updateCartUI(){
-    const { items, total } = getCartTotals();
+  /* ── PRODUCT MODAL ── */
+  function openModal(id){
+    const p = products.find(x => String(x.id) === String(id));
+    if(!p) return;
+    modalProduct = p;
+    modalQty = 1;
+    modalVariants = {};
+    sliderImages = getImages(p);
+    sliderIdx = 0;
+
+    $sliderTrack.innerHTML = sliderImages.map(src =>
+      `<div class="slider-slide"><img src="${src}" alt="${p.nombre}" loading="lazy"/></div>`
+    ).join('');
+    $sliderTrack.style.transform = 'translateX(0)';
+
+    $sliderDots.innerHTML = sliderImages.map((_,i) =>
+      `<button class="slider-dot${i===0?' active':''}" data-idx="${i}"></button>`
+    ).join('');
+
+    $sliderPrev.hidden = sliderImages.length <= 1;
+    $sliderNext.hidden = sliderImages.length <= 1;
+
+    renderModalDetail();
+
+    $modalOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function renderModalDetail(){
+    const p = modalProduct;
+    const hasVariants = Array.isArray(p.variantes) && p.variantes.length > 0;
     const catLabels = config.categories || { hombre: 'Para Él', mujer: 'Para Ella' };
 
-    // Badges
-    $cartBadge.textContent = items;
-    $cartBadge.classList.toggle('show', items > 0);
-    $navCartBadge.textContent = items;
-    $navCartBadge.classList.toggle('show', items > 0);
+    let variantHTML = '';
+    if(hasVariants){
+      variantHTML = p.variantes.map(group => `
+        <div class="variant-group">
+          <div class="variant-label">${group.name}</div>
+          <div class="variant-options">
+            ${group.options.map(opt => `
+              <button class="variant-option${modalVariants[group.name]===opt?' selected':''}"
+                data-group="${group.name}" data-opt="${opt}">${opt}</button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
 
-    // Totals
+    const allSelected = !hasVariants || p.variantes.every(g => modalVariants[g.name]);
+
+    $modalDetail.innerHTML = `
+      <div class="modal-name">${p.nombre}</div>
+      <div class="modal-cat">${catLabels[p.categoria] || p.categoria}</div>
+      <div class="modal-price">${formatPrice(p.precio)}</div>
+      ${p.descripcion ? `<div class="modal-desc">${p.descripcion}</div>` : ''}
+      ${variantHTML}
+      ${hasVariants && !allSelected ? '<p class="modal-variant-hint">Selecciona todas las opciones</p>' : ''}
+      <div class="modal-actions">
+        <div class="modal-qty">
+          <button id="mqDec">−</button>
+          <span class="qty-val" id="mqVal">${modalQty}</span>
+          <button id="mqInc">+</button>
+        </div>
+        <button class="btn-modal-add" id="btnModalAdd" ${allSelected ? '' : 'disabled'}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Agregar al carrito
+        </button>
+      </div>
+    `;
+
+    document.getElementById('mqDec').addEventListener('click', () => {
+      if(modalQty > 1){ modalQty--; document.getElementById('mqVal').textContent = modalQty; }
+    });
+    document.getElementById('mqInc').addEventListener('click', () => {
+      modalQty++;
+      document.getElementById('mqVal').textContent = modalQty;
+    });
+    document.getElementById('btnModalAdd').addEventListener('click', () => {
+      cartAdd(modalProduct.id, modalVariants, modalQty);
+      closeModal();
+    });
+
+    $modalDetail.querySelectorAll('.variant-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        modalVariants[btn.dataset.group] = btn.dataset.opt;
+        renderModalDetail();
+      });
+    });
+  }
+
+  function closeModal(){
+    $modalOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+    modalProduct = null;
+  }
+
+  /* ── SLIDER ── */
+  function slideTo(idx){
+    sliderIdx = Math.max(0, Math.min(idx, sliderImages.length - 1));
+    $sliderTrack.style.transform = `translateX(-${sliderIdx * 100}%)`;
+    $sliderDots.querySelectorAll('.slider-dot').forEach((d,i) => d.classList.toggle('active', i === sliderIdx));
+  }
+
+  $sliderPrev.addEventListener('click', e => { e.stopPropagation(); slideTo(sliderIdx - 1); });
+  $sliderNext.addEventListener('click', e => { e.stopPropagation(); slideTo(sliderIdx + 1); });
+  $sliderDots.addEventListener('click', e => {
+    const dot = e.target.closest('.slider-dot');
+    if(dot) slideTo(Number(dot.dataset.idx));
+  });
+
+  let touchStartX = 0;
+  document.getElementById('sliderWrap').addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].clientX;
+  }, { passive: true });
+  document.getElementById('sliderWrap').addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(dx) > 40) slideTo(dx < 0 ? sliderIdx + 1 : sliderIdx - 1);
+  });
+
+  /* ── CART DRAWER UI ── */
+  function updateCartUI(){
+    const qty = cartTotalQty();
+    const total = cartTotalPrice();
+
+    $cartBadge.textContent = qty;
+    $cartBadge.classList.toggle('show', qty > 0);
+    $navCartBadge.textContent = qty;
+    $navCartBadge.classList.toggle('show', qty > 0);
+
     $cartTotal.textContent = formatPrice(total);
-    $cartItemCount.textContent = `${items} producto${items !== 1 ? 's' : ''}`;
-    $btnCheckout.disabled = items === 0;
+    $cartItemCount.textContent = `${qty} producto${qty !== 1 ? 's' : ''}`;
+    $btnCheckout.disabled = qty === 0;
 
-    // Items list
-    const ids = Object.keys(cart);
-    if(ids.length === 0){
+    if(!cartItems.length){
       $cartItems.innerHTML = `
         <div class="cart-empty">
           <div class="cart-empty-icon">✦</div>
@@ -237,20 +388,18 @@
     }
 
     $cartItems.innerHTML = '';
-    ids.forEach(id => {
-      const p = products.find(x => x.id === id);
-      if(!p) return;
-      const qty = cart[id];
+    cartItems.forEach(item => {
+      const vLabel = variantLabel(item.variantes);
       const div = document.createElement('div');
       div.className = 'cart-item';
       div.innerHTML = `
-        <img src="${p.imagen}" alt="${p.nombre}" onerror="this.style.opacity=0"/>
+        <img src="${item.imagen || ''}" alt="${item.nombre}" onerror="this.style.opacity=0"/>
         <div class="cart-item-info">
-          <div class="cart-item-name">${p.nombre}</div>
-          <div class="cart-item-detail">${catLabels[p.categoria] || p.categoria} · ${qty} × ${formatPrice(p.precio)}</div>
-          <div class="cart-item-price">${formatPrice(qty * p.precio)}</div>
+          <div class="cart-item-name">${item.nombre}</div>
+          ${vLabel ? `<div class="cart-item-detail">${vLabel}</div>` : ''}
+          <div class="cart-item-detail">${item.qty} × ${formatPrice(item.precio)} = ${formatPrice(item.qty * item.precio)}</div>
         </div>
-        <button class="cart-item-remove" data-id="${id}" title="Quitar">✕</button>
+        <button class="cart-item-remove" data-key="${item.key}" title="Quitar">✕</button>
       `;
       $cartItems.appendChild(div);
     });
@@ -274,18 +423,15 @@
     const num = (config.whatsapp_number || '').replace(/\D/g, '');
     if(!num){ alert('Numero de WhatsApp no configurado'); return; }
 
-    const { total } = getCartTotals();
-    const catLabels = config.categories || { hombre: 'Para Él', mujer: 'Para Ella' };
-
+    const total = cartTotalPrice();
     let msg = `${config.whatsapp_message || 'Hola! Quiero hacer un pedido:'}\n\n`;
     msg += `*PEDIDO REPLIK*\n`;
     msg += `━━━━━━━━━━━━━━━━━\n`;
 
-    Object.entries(cart).forEach(([id, qty]) => {
-      const p = products.find(x => x.id === id);
-      if(!p) return;
-      msg += `▸ ${p.nombre}\n`;
-      msg += `  ${qty} × ${formatPrice(p.precio)} = ${formatPrice(qty * p.precio)}\n`;
+    cartItems.forEach(item => {
+      const vLabel = variantLabel(item.variantes);
+      msg += `▸ ${item.nombre}${vLabel ? ' (' + vLabel + ')' : ''}\n`;
+      msg += `  ${item.qty} × ${formatPrice(item.precio)} = ${formatPrice(item.qty * item.precio)}\n`;
     });
 
     msg += `━━━━━━━━━━━━━━━━━\n`;
@@ -300,10 +446,10 @@
         ecommerce: {
           value: total,
           currency: 'USD',
-          items: Object.entries(cart).map(([id, qty]) => {
-            const p = products.find(x => x.id === id);
-            return { item_id: id, item_name: p?.nombre, quantity: qty, price: p?.precio };
-          })
+          items: cartItems.map(i => ({
+            item_id: i.id, item_name: i.nombre,
+            quantity: i.qty, price: i.precio
+          }))
         }
       });
     }
@@ -311,20 +457,33 @@
 
   /* ── EVENTS ── */
   document.addEventListener('click', e => {
-    const btn = e.target.closest('[data-action]');
-    if(btn){
-      e.stopPropagation();
-      const { action, id } = btn.dataset;
-      if(action === 'add' || action === 'inc') cartAdd(id);
-      if(action === 'dec') cartRemove(id);
+    // Direct add (no-variant products)
+    const addTrigger = e.target.closest('[data-add]');
+    if(addTrigger && !e.target.closest('[data-action]')){
+      cartAdd(addTrigger.dataset.add, {}, 1);
       return;
     }
 
-    const removeBtn = e.target.closest('.cart-item-remove');
-    if(removeBtn){
-      cartSet(removeBtn.dataset.id, 0);
+    // Open modal
+    const openTrigger = e.target.closest('[data-open]');
+    if(openTrigger && !e.target.closest('[data-action]')){
+      openModal(openTrigger.dataset.open);
       return;
     }
+
+    // Card qty controls
+    const btn = e.target.closest('[data-action]');
+    if(btn){
+      e.stopPropagation();
+      const { action, id, key } = btn.dataset;
+      if(action === 'inc') cartAdd(id, {}, 1);
+      if(action === 'dec' && key) cartRemoveOne(key);
+      return;
+    }
+
+    // Cart remove
+    const removeBtn = e.target.closest('.cart-item-remove');
+    if(removeBtn){ cartDelete(removeBtn.dataset.key); return; }
   });
 
   $filterPills.addEventListener('click', e => {
@@ -347,8 +506,13 @@
   $cartClose.addEventListener('click', closeCart);
   $btnCheckout.addEventListener('click', checkout);
 
+  $modalOverlay.addEventListener('click', e => { if(e.target === $modalOverlay) closeModal(); });
+  $modalClose.addEventListener('click', closeModal);
+
   document.addEventListener('keydown', e => {
-    if(e.key === 'Escape') closeCart();
+    if(e.key === 'Escape'){ closeModal(); closeCart(); }
+    if(e.key === 'ArrowLeft' && $modalOverlay.classList.contains('open')) slideTo(sliderIdx - 1);
+    if(e.key === 'ArrowRight' && $modalOverlay.classList.contains('open')) slideTo(sliderIdx + 1);
   });
 
   /* ── INIT ── */
@@ -366,9 +530,7 @@
     products = await res.json();
 
     loadCart();
-    Object.keys(cart).forEach(id => {
-      if(!products.find(p => p.id === id)) delete cart[id];
-    });
+    cartItems = cartItems.filter(ci => products.find(p => String(p.id) === String(ci.id)));
 
     renderCatalog();
     updateCartUI();

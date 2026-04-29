@@ -92,6 +92,28 @@
     </div>
   </aside>
 
+  <!-- PRODUCT MODAL -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose" aria-label="Cerrar">✕</button>
+      <div class="modal-body">
+        <!-- SLIDER -->
+        <div class="slider-wrap" id="sliderWrap">
+          <div class="slider-track" id="sliderTrack"></div>
+          <button class="slider-btn prev" id="sliderPrev" aria-label="Anterior">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="slider-btn next" id="sliderNext" aria-label="Siguiente">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <div class="slider-dots" id="sliderDots"></div>
+        </div>
+        <!-- DETAIL -->
+        <div class="modal-detail" id="modalDetail"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
