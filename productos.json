@@ -28,5 +28,33 @@
       }
     ],
     "sku": ""
+  },
+  {
+    "id": 12277,
+    "slug": "la-vie-est-belle-lancome",
+    "nombre": "La Vie Est Belle - Lancôme",
+    "precio": "24.99",
+    "precio_promo": "",
+    "categoria": "mujer",
+    "descripcion": "Perfume altamente cotizado",
+    "stock": -1,
+    "imagenes": [],
+    "variantes": [
+      {
+        "name": "Presentación",
+        "options": [
+          "30ml",
+          "100ml"
+        ]
+      },
+      {
+        "name": "Envase",
+        "options": [
+          "Original",
+          "Genérico"
+        ]
+      }
+    ],
+    "sku": ""
   }
 ]
