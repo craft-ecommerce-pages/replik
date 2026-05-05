@@ -72,7 +72,7 @@ body{
 .hero{
   text-align:center;
   padding:72px 24px 80px;
-  background:linear-gradient(rgba(0,0,0,.88),rgba(0,0,0,.88)),url('../media/hero_background.webp') center top/cover no-repeat;
+  background:url('../media/hero_background.webp') center top/cover no-repeat;
   border-bottom:1px solid var(--cream-dark);
 }
 .hero-brand{
