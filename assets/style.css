@@ -72,7 +72,7 @@ body{
 .hero{
   text-align:center;
   padding:72px 24px 80px;
-  background:linear-gradient(rgba(0,0,0,.80),rgba(0,0,0,.80)),url('../media/hero_background.webp') center top/cover no-repeat;
+  background:linear-gradient(rgba(0,0,0,.88),rgba(0,0,0,.88)),url('../media/hero_background.webp') center top/cover no-repeat;
   border-bottom:1px solid var(--cream-dark);
 }
 .hero-brand{
@@ -81,14 +81,16 @@ body{
   font-weight:300;letter-spacing:-.02em;
   line-height:1;margin-bottom:4px;
   color:var(--white);
+  text-shadow:0 2px 12px rgba(0,0,0,.6);
 }
 .hero-brand strong{font-weight:700}
 .hero-tagline{
   font-family:'Cormorant Garamond',serif;
   font-size:clamp(18px,3vw,24px);
   font-style:italic;font-weight:300;
-  color:rgba(255,255,255,.8);margin-bottom:24px;
+  color:rgba(255,255,255,.9);margin-bottom:24px;
   letter-spacing:.01em;
+  text-shadow:0 2px 8px rgba(0,0,0,.6);
 }
 .hero-badge{
   display:inline-block;
