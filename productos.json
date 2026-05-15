@@ -9,7 +9,7 @@
     "descripcion": "Perfume replica triple A del famoso 212 de Carolina Herrera",
     "stock": -1,
     "imagenes": [
-      "producto/212-carolina-herrera/images/212-carolina-herrera-1.webp"
+      "/producto/212-carolina-herrera/images/212-carolina-herrera-1.webp"
     ],
     "variantes": [
       {
@@ -39,7 +39,7 @@
     "descripcion": "Perfume altamente cotizado",
     "stock": -1,
     "imagenes": [
-      "producto/la-vie-est-belle-lancome/images/la-vie-est-belle-lancome-1.webp"
+      "/producto/la-vie-est-belle-lancome/images/la-vie-est-belle-lancome-1.webp"
     ],
     "variantes": [
       {
@@ -57,6 +57,19 @@
         ]
       }
     ],
+    "sku": ""
+  },
+  {
+    "id": 12413,
+    "slug": "producto-de-prueba",
+    "nombre": "Producto de prueba",
+    "precio": "22.99",
+    "precio_promo": "",
+    "categoria": "",
+    "descripcion": "Producto de prueba",
+    "stock": -1,
+    "imagenes": [],
+    "variantes": [],
     "sku": ""
   }
 ]
