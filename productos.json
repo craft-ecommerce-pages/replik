@@ -68,7 +68,9 @@
     "categoria": "",
     "descripcion": "Producto de prueba",
     "stock": -1,
-    "imagenes": [],
+    "imagenes": [
+      "/producto/producto-de-prueba/images/producto-de-prueba-1.webp"
+    ],
     "variantes": [],
     "sku": ""
   }
