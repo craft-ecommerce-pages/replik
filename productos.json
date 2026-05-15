@@ -65,7 +65,7 @@
     "nombre": "Producto de prueba",
     "precio": "22.99",
     "precio_promo": "",
-    "categoria": "",
+    "categoria": "mujer",
     "descripcion": "Producto de prueba",
     "stock": -1,
     "imagenes": [
