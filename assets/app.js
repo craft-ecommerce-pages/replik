@@ -130,7 +130,7 @@
   /* ── RENDER CATALOG ── */
   function renderCatalog(){
     const filtered = products.filter(p => {
-      const matchCat = activeFilter === 'all' || p.categoria === activeFilter;
+      const matchCat = activeFilter === 'all' || (p.categorias||[]).includes(activeFilter);
       const matchSearch = !searchQuery
         || normalize(p.nombre).includes(searchQuery)
         || normalize(p.descripcion||'').includes(searchQuery);
@@ -142,8 +142,9 @@
 
     const groups = {};
     filtered.forEach(p => {
-      if(!groups[p.categoria]) groups[p.categoria] = [];
-      groups[p.categoria].push(p);
+      const primaryCat = (p.categorias||[])[0]||'';
+      if(!groups[primaryCat]) groups[primaryCat] = [];
+      groups[primaryCat].push(p);
     });
 
     $catalog.innerHTML = '';
@@ -181,7 +182,7 @@
             </div>
           </div>
           <div class="card-body">
-            <div class="card-cat">${catLabels[p.categoria] || p.categoria}</div>
+            <div class="card-cat">${catLabels[(p.categorias||[])[0]] || (p.categorias||[])[0] || ''}</div>
             <div class="card-name">${p.nombre}</div>
             ${p.descripcion ? `<div class="card-desc">${p.descripcion}</div>` : ''}
             <div class="card-footer">
@@ -296,7 +297,7 @@
 
     $modalDetail.innerHTML = `
       <div class="modal-name">${p.nombre}</div>
-      <div class="modal-cat">${catLabels[p.categoria] || p.categoria}</div>
+      <div class="modal-cat">${catLabels[(p.categorias||[])[0]] || (p.categorias||[])[0] || ''}</div>
       <div class="modal-price">${formatPrice(p.precio)}</div>
       ${p.descripcion ? `<div class="modal-desc">${p.descripcion}</div>` : ''}
       ${variantHTML}
