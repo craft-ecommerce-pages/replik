@@ -1,11 +1,13 @@
 [
   {
-    "id": 12276,
+    "id": "12276",
     "slug": "212-carolina-herrera",
     "nombre": "212 Carolina Herrera",
     "precio": "24.97",
     "precio_promo": "",
-    "categoria": "hombre",
+    "categorias": [
+      "hombre"
+    ],
     "descripcion": "Perfume replica triple A del famoso 212 de Carolina Herrera",
     "stock": -1,
     "imagenes": [
@@ -13,14 +15,12 @@
     ],
     "variantes": [
       {
-        "name": "Presentación",
         "options": [
           "30ml",
           "100ml"
         ]
       },
       {
-        "name": "Envase",
         "options": [
           "Original",
           "Generico"
@@ -30,12 +30,14 @@
     "sku": ""
   },
   {
-    "id": 12277,
+    "id": "12277",
     "slug": "la-vie-est-belle-lancome",
     "nombre": "La Vie Est Belle - Lancôme",
     "precio": "24.99",
     "precio_promo": "",
-    "categoria": "mujer",
+    "categorias": [
+      "mujer"
+    ],
     "descripcion": "Perfume altamente cotizado",
     "stock": -1,
     "imagenes": [
@@ -43,14 +45,12 @@
     ],
     "variantes": [
       {
-        "name": "Presentación",
         "options": [
           "30ml",
           "100ml"
         ]
       },
       {
-        "name": "Envase",
         "options": [
           "Original",
           "Genérico"
@@ -60,12 +60,14 @@
     "sku": ""
   },
   {
-    "id": 12413,
+    "id": "12413",
     "slug": "producto-de-prueba",
     "nombre": "Producto de prueba",
     "precio": "22.99",
     "precio_promo": "",
-    "categoria": "mujer",
+    "categorias": [
+      "mujer"
+    ],
     "descripcion": "Producto de prueba",
     "stock": -1,
     "imagenes": [
