@@ -29,6 +29,9 @@
   const $cartTotal     = document.getElementById('cartTotal');
   const $cartItemCount = document.getElementById('cartItemCount');
   const $btnCheckout   = document.getElementById('btnCheckout');
+  const $cartStep2     = document.getElementById('cartStep2');
+  const $cartBack      = document.getElementById('cartBack');
+  const $cartTitle     = document.getElementById('cartTitle');
   const $toast         = document.getElementById('toast');
   const $nav           = document.getElementById('mainNav');
   const $modalOverlay  = document.getElementById('modalOverlay');
@@ -417,41 +420,76 @@
     $cartOverlay.classList.remove('open');
     $cartDrawer.classList.remove('open');
     document.body.style.overflow = '';
+    goToStep1();
+  }
+
+  function goToStep1(){
+    $cartStep2.style.display = 'none';
+    $cartItems.closest('.cart-items').style.display = '';
+    $cartDrawer.querySelector('.cart-footer').style.display = '';
+    $cartBack.style.display = 'none';
+    $cartTitle.textContent = 'Mi carrito';
+  }
+
+  function goToStep2(){
+    $cartStep2.style.display = 'flex';
+    $cartItems.closest('.cart-items').style.display = 'none';
+    $cartDrawer.querySelector('.cart-footer').style.display = 'none';
+    $cartBack.style.display = '';
+    $cartTitle.textContent = 'Datos de entrega';
   }
 
   /* ── WHATSAPP CHECKOUT ── */
   function checkout(){
     const num = (config.whatsapp_number || '').replace(/\D/g, '');
-    if(!num){ alert('Numero de WhatsApp no configurado'); return; }
+    if(!num){ showToast('WhatsApp no configurado'); return; }
+
+    const name    = document.getElementById('fieldName').value.trim();
+    const phone   = document.getElementById('fieldPhone').value.trim();
+    const mode    = document.querySelector('.dtog-btn.active')?.dataset.mode || 'delivery';
+    const address = mode === 'delivery' ? document.getElementById('fieldAddress').value.trim() : '';
+
+    if(!name || !phone){ showToast('Completa tu nombre y teléfono'); return; }
+    if(mode === 'delivery' && !address){ showToast('Ingresa tu dirección de entrega'); return; }
 
     const total = cartTotalPrice();
-    let msg = `${config.whatsapp_message || 'Hola! Quiero hacer un pedido:'}\n\n`;
-    msg += `*PEDIDO REPLIK*\n`;
-    msg += `━━━━━━━━━━━━━━━━━\n`;
+    const store = config.store_name || 'RepliK';
+    const cur   = config.currency || '$';
 
+    // Notifica al dueño — fire-and-forget
+    if(config.catalog_notify_url && config.catalog_notify_token){
+      fetch(config.catalog_notify_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: config.catalog_notify_token,
+          store_name: store,
+          items: cartItems.map(i => ({ nombre: i.nombre, qty: i.qty, precio: i.precio, variant: variantLabel(i.variantes) || undefined })),
+          total, currency: cur,
+          client_name: name, client_phone: phone,
+          delivery_mode: mode, address: address || undefined,
+          store_url: location.href
+        })
+      }).catch(() => {});
+    }
+
+    let msg = `${config.whatsapp_message || '¡Hola! Quiero hacer un pedido:'}\n\n*PEDIDO — ${store}*\n━━━━━━━━━━━━━━━━━\n`;
     cartItems.forEach(item => {
       const vLabel = variantLabel(item.variantes);
-      msg += `▸ ${item.nombre}${vLabel ? ' (' + vLabel + ')' : ''}\n`;
-      msg += `  ${item.qty} × ${formatPrice(item.precio)} = ${formatPrice(item.qty * item.precio)}\n`;
+      msg += `▸ ${item.nombre}${vLabel ? ' (' + vLabel + ')' : ''}\n  ${item.qty} × ${formatPrice(item.precio)} = ${formatPrice(item.qty * item.precio)}\n`;
     });
-
-    msg += `━━━━━━━━━━━━━━━━━\n`;
-    msg += `*TOTAL: ${formatPrice(total)}*\n\n`;
-    msg += `Catalogo: ${location.href}`;
+    msg += `━━━━━━━━━━━━━━━━━\n*TOTAL: ${cur}${total.toFixed(2)}*\n\n`;
+    msg += `*ENTREGA:* ${mode === 'delivery' ? 'Domicilio' : 'Retiro en local'}\n`;
+    msg += `*Cliente:* ${name}\n*Teléfono:* ${phone}\n`;
+    if(address) msg += `*Dirección:* ${address}\n`;
+    msg += `\n${location.href}`;
 
     window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
 
     if(window.dataLayer){
       window.dataLayer.push({
         event: 'whatsapp_checkout',
-        ecommerce: {
-          value: total,
-          currency: 'USD',
-          items: cartItems.map(i => ({
-            item_id: i.id, item_name: i.nombre,
-            quantity: i.qty, price: i.precio
-          }))
-        }
+        ecommerce: { value: total, currency: 'USD', items: cartItems.map(i => ({ item_id: i.id, item_name: i.nombre, quantity: i.qty, price: i.precio })) }
       });
     }
   }
@@ -505,7 +543,16 @@
   document.getElementById('navCartBtn').addEventListener('click', openCart);
   $cartOverlay.addEventListener('click', closeCart);
   $cartClose.addEventListener('click', closeCart);
-  $btnCheckout.addEventListener('click', checkout);
+  $btnCheckout.addEventListener('click', goToStep2);
+  $cartBack.addEventListener('click', goToStep1);
+  document.getElementById('btnConfirm').addEventListener('click', checkout);
+  document.getElementById('deliveryToggle').addEventListener('click', e => {
+    const btn = e.target.closest('.dtog-btn');
+    if(!btn) return;
+    document.querySelectorAll('.dtog-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('fieldAddressWrap').style.display = btn.dataset.mode === 'delivery' ? '' : 'none';
+  });
 
   $modalOverlay.addEventListener('click', e => { if(e.target === $modalOverlay) closeModal(); });
   $modalClose.addEventListener('click', closeModal);
