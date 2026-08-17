@@ -287,10 +287,10 @@
         <div class="variant-group">
           <div class="variant-label">${group.name}</div>
           <div class="variant-options">
-            ${group.options.map(opt => `
-              <button class="variant-option${modalVariants[group.name]===opt?' selected':''}"
-                data-group="${group.name}" data-opt="${opt}">${opt}</button>
-            `).join('')}
+            ${group.options.map(opt => { const k=(typeof opt==='object'&&opt!==null)?(opt.label||''):opt; return `
+              <button class="variant-option${modalVariants[group.name]===k?' selected':''}"
+                data-group="${group.name}" data-opt="${k}">${k}</button>
+            `;}).join('')}
           </div>
         </div>
       `).join('');
@@ -332,7 +332,11 @@
 
     $modalDetail.querySelectorAll('.variant-option').forEach(btn => {
       btn.addEventListener('click', () => {
-        modalVariants[btn.dataset.group] = btn.dataset.opt;
+        const group=btn.dataset.group, opt=btn.dataset.opt;
+        modalVariants[group] = opt;
+        const _g=(modalProduct.variantes||[]).find(g=>g.name===group);
+        const _o=_g&&(_g.options||[]).find(o=>((typeof o==='object'&&o!==null)?(o.label||''):o)===opt);
+        if(_o&&_o.image){const _i=sliderImages.indexOf(_o.image);if(_i>=0)slideTo(_i);}
         renderModalDetail();
       });
     });
